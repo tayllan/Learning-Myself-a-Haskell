@@ -8,6 +8,8 @@ module Tests.Tree (
 ) where
 
 import Control.Applicative
+import Control.Monad
+import Data.Functor
 import qualified Laws.Functor as F
 import qualified Laws.Applicative as A
 import qualified Laws.Monad as M
@@ -35,6 +37,12 @@ instance Applicative Tree where
 	(Node f leftBranch rightBranch) <*> x= fmap f x
 	EmptyTree <*> _ = EmptyTree
 
+instance Monad Tree where
+	return = singleton
+	fail _ = EmptyTree
+	(Node f leftBranch rightBranch) >>= g = g f
+	EmptyTree >>= _ = EmptyTree
+
 isFunctor :: Bool
 isFunctor = and [
 		F.identity (EmptyTree :: Tree Int),
@@ -57,11 +65,9 @@ isApplicative = and [
 
 isMonad :: Bool
 isMonad = and [
-		-- TODO: make Tree an instance of the Monad type class
-		--leftIdentity singleton 1,
-		--rightIdentity $ singleton 1,
-		--rightIdentity (EmptyTree :: Tree Int),
-		--associativity singleton singleton (singleton 1),
-		--associativity singleton singleton (EmptyTree :: Tree Int)
-		False
+		M.leftIdentity singleton 1,
+		M.rightIdentity $ singleton 1,
+		M.rightIdentity (EmptyTree :: Tree Int),
+		M.associativity singleton singleton (singleton 1),
+		M.associativity singleton singleton (EmptyTree :: Tree Int)
 	]
